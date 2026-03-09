@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flora UFR — Projeto de Extensão</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --green-950: #153626;
+      --green-900: #1f4d36;
+      --green-700: #2f6b49;
+      --green-500: #5cb85c;
+      --green-200: #dcefdc;
+      --blue-950: #142840;
+      --blue-900: #1e3a5f;
+      --blue-700: #2e75b6;
+      --sand: #f9f9f7;
+      --ink: #27303b;
+      --muted: #667085;
+      --white: #ffffff;
+      --line: rgba(30, 58, 95, 0.12);
+      --shadow: 0 20px 40px rgba(18, 38, 28, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(92,184,92,.18), transparent 30%),
+        linear-gradient(180deg, #f6fbf6 0%, #ffffff 35%, #f7fafc 100%);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: min(calc(100% - 32px), var(--max)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,.84);
+      border-bottom: 1px solid rgba(30,58,95,.08);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 78px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--green-700), var(--blue-900));
+      display: grid;
+      place-items: center;
+      color: white;
+      box-shadow: var(--shadow);
+      font-size: 1.2rem;
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .menu a {
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--blue-900);
+      font-size: .94rem;
+      transition: .2s ease;
+    }
+
+    .menu a:hover,
+    .menu a.active {
+      background: rgba(92,184,92,.12);
+      color: var(--green-900);
+    }
+
+    .mobile-toggle {
+      display: none;
+      border: 0;
+      background: rgba(30,58,95,.06);
+      color: var(--blue-900);
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      font-size: 1.15rem;
+      cursor: pointer;
+    }
+
+    .hero {
+      padding: 60px 0 30px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .hero-card,
+    .glass-card,
+    .metric,
+    .section-card,
+    .panel,
+    .timeline-card,
+    .table-wrap,
+    .reference-list {
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(255,255,255,.72);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 42px;
+      border-radius: 34px;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(92,184,92,.14), rgba(46,117,182,.08)),
+        rgba(255,255,255,.94);
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      bottom: -70px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(92,184,92,.28), transparent 65%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(31,77,54,.08);
+      color: var(--green-900);
+      font-size: .82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(2.6rem, 5vw, 4.8rem);
+      line-height: .95;
+      letter-spacing: -.05em;
+      color: var(--green-950);
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--blue-900);
+      font-weight: 600;
+      font-size: 1.1rem;
+      max-width: 40ch;
+    }
+
+    .hero p {
+      margin: 0;
+      color: #475467;
+      font-size: 1.02rem;
+      max-width: 62ch;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 20px;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--green-700), var(--green-500));
+      box-shadow: 0 14px 30px rgba(47,107,73,.22);
+    }
+
+    .btn-secondary {
+      color: var(--blue-900);
+      background: rgba(30,58,95,.06);
+    }
+
+    .hero-side { display: grid; gap: 18px; }
+
+    .glass-card,
+    .panel,
+    .section-card,
+    .timeline-card,
+    .table-wrap,
+    .reference-list {
+      border-radius: 26px;
+      padding: 24px;
+      border: 1px solid var(--line);
+    }
+
+    .glass-card h3,
+    .section-card h3,
+    .panel h3,
+    .timeline-card h3,
+    .section-head h2,
+    .table-wrap h3,
+    .reference-list h3 {
+      margin: 0 0 10px;
+      color: var(--blue-900);
+      letter-spacing: -.02em;
+    }
+
+    .glass-card p,
+    .section-card p,
+    .panel p,
+    .timeline-card p,
+    .section-head p,
+    .table-wrap p,
+    .reference-list li,
+    .metric p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .legend { display: grid; gap: 12px; margin-top: 16px; }
+    .legend-item { display: flex; justify-content: space-between; gap: 18px; align-items: center; }
+    .legend-item span:first-child { display: inline-flex; gap: 10px; align-items: center; font-weight: 600; color: var(--ink); }
+    .dot { width: 12px; height: 12px; border-radius: 999px; display: inline-block; }
+
+    section { padding: 24px 0 56px; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin: 12px 0 56px;
+    }
+
+    .metric {
+      border-radius: 22px;
+      padding: 22px;
+      min-height: 150px;
+      border: 1px solid var(--line);
+    }
+
+    .metric span {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: .84rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--blue-700);
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 2.1rem;
+      color: var(--green-900);
+      letter-spacing: -.04em;
+      margin-bottom: 6px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-head h2 { font-size: clamp(1.8rem, 2.7vw, 2.7rem); }
+
+    .section-kicker {
+      color: var(--green-700);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .78rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .grid-2,
+    .grid-3,
+    .cards-grid,
+    .objectives-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid-2 { grid-template-columns: 1.1fr .9fr; }
+    .grid-3,
+    .cards-grid,
+    .objectives-grid { grid-template-columns: repeat(3, 1fr); }
+
+    .section-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--green-500), var(--blue-700));
+    }
+
+    .icon-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      font-size: 1.2rem;
+      background: linear-gradient(135deg, rgba(92,184,92,.15), rgba(46,117,182,.14));
+    }
+
+    .meta-list,
+    .bullets,
+    .reference-list ul {
+      padding-left: 18px;
+      margin: 14px 0 0;
+    }
+
+    .meta-list li,
+    .bullets li,
+    .reference-list li {
+      margin-bottom: 8px;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--sand);
+      border: 1px solid rgba(30,58,95,.08);
+      color: var(--blue-900);
+      font-size: .88rem;
+      font-weight: 600;
+    }
+
+    .table-wrap { overflow: hidden; padding: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .96rem;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, var(--green-700), var(--blue-900));
+      color: white;
+      font-size: .9rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    tbody td {
+      padding: 16px 18px;
+      border-top: 1px solid rgba(30,58,95,.08);
+      vertical-align: top;
+      color: #41505f;
+    }
+
+    tbody tr:nth-child(even) td { background: #fbfcfe; }
+
+    .timeline { display: grid; gap: 18px; }
+
+    .timeline-card {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .week {
+      width: 92px;
+      aspect-ratio: 1;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--green-700), var(--blue-900));
+      color: white;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      font-weight: 800;
+      line-height: 1.1;
+      padding: 8px;
+      box-shadow: 0 16px 30px rgba(30,58,95,.18);
+    }
+
+    .real-map {
+      min-height: 520px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      background: linear-gradient(180deg, rgba(92,184,92,.08), rgba(46,117,182,.05));
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px;
+    }
+
+    .leaflet-popup-content {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    .map-popup-title {
+      font-weight: 800;
+      color: var(--blue-900);
+      margin-bottom: 4px;
+    }
+
+    .reference-list ul { margin-top: 0; }
+
+    .footer {
+      padding: 28px 0 50px;
+      color: var(--muted);
+    }
+
+    .footer-box {
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1024px) {
+      .hero-grid,
+      .grid-2,
+      .metrics,
+      .grid-3,
+      .cards-grid,
+      .objectives-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-grid > :first-child,
+      .grid-2 > :first-child,
+      .section-head,
+      .table-wrap,
+      .reference-list {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .mobile-toggle { display: inline-grid; place-items: center; }
+
+      .menu {
+        position: absolute;
+        top: 78px;
+        right: 16px;
+        left: 16px;
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px;
+        background: rgba(255,255,255,.96);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .menu.open { display: flex; }
+      .hero-card { padding: 28px; }
+      .hero, section { padding-top: 28px; }
+
+      .hero-grid,
+      .grid-2,
+      .metrics,
+      .grid-3,
+      .cards-grid,
+      .objectives-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        flex-direction: column;
+        align-items: start;
+      }
+
+      .timeline-card { grid-template-columns: 1fr; }
+      .week { width: 100%; aspect-ratio: unset; height: 74px; }
+
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tbody tr { border-top: 1px solid rgba(30,58,95,.08); }
+      tbody td { padding: 10px 16px; }
+      tbody td::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 800;
+        color: var(--blue-900);
+        margin-bottom: 4px;
+        font-size: .84rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <a href="#inicio" class="brand">
+        <div class="brand-mark">🌿</div>
+        <div>
+          Flora UFR
+          <small>Projeto de extensão em paisagismo universitário</small>
+        </div>
+      </a>
+
+      <button class="mobile-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
+
+      <nav class="menu" id="menu">
+        <a href="#apresentacao">Apresentação</a>
+        <a href="#objetivos">Objetivos</a>
+        <a href="#diagnostico">Diagnóstico</a>
+        <a href="#metodologia">Metodologia</a>
+        <a href="#mapa">Mapa</a>
+        <a href="#cronograma">Cronograma</a>
+        <a href="#resultados">Resultados</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container">
+        <div class="hero-grid">
+          <article class="hero-card">
+            <span class="eyebrow">Universidade Federal de Rondonópolis • Prática de Extensão 2</span>
+            <h1>Flora UFR</h1>
+            <p class="subtitle">Inventário, revitalização e planejamento para as árvores da UFR</p>
+            <p>
+              Proposta de extensão voltada à qualificação do manejo arbóreo, à elaboração de um plano diretor de paisagismo
+              e ao desenvolvimento de uma ferramenta digital para catalogação da flora do campus.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="document.querySelector('#apresentacao').scrollIntoView({behavior:'smooth'})">Ler projeto</button>
+              <button class="btn btn-secondary" onclick="window.print()">Imprimir / PDF</button>
+            </div>
+          </article>
+
+          <aside class="hero-side">
+            <div class="glass-card">
+              <h3>Ficha do projeto</h3>
+              <ul class="meta-list">
+                <li><strong>Professor orientador:</strong> Normandes Matos da Silva</li>
+                <li><strong>Discentes:</strong> Efraim Almeida Fernandes e Jackcilayne Padilha de Souza</li>
+                <li><strong>Curso:</strong> Engenharia Agrícola e Ambiental</li>
+                <li><strong>Instituição:</strong> Universidade Federal de Rondonópolis</li>
+                <li><strong>Local:</strong> Rondonópolis – MT</li>
+                <li><strong>Ano:</strong> 2026</li>
+              </ul>
+            </div>
+
+            <div class="glass-card">
+              <h3>Escopo principal</h3>
+              <div class="legend">
+                <div class="legend-item"><span><i class="dot" style="background:#5cb85c"></i> Inventário arbóreo</span><strong>01</strong></div>
+                <div class="legend-item"><span><i class="dot" style="background:#2e75b6"></i> Oficina de poda</span><strong>02</strong></div>
+                <div class="legend-item"><span><i class="dot" style="background:#cfe6cf"></i> Plano diretor + app</span><strong>03</strong></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <section>
+        <div class="metrics">
+          <div class="metric">
+            <span>Duração</span>
+            <strong>08</strong>
+            <p>semanas com atividades sobrepostas entre campo, oficina, plano e protótipo digital.</p>
+          </div>
+          <div class="metric">
+            <span>Frentes</span>
+            <strong>05</strong>
+            <p>diagnóstico, oficina, plano diretor, aplicativo e restauração do gramado.</p>
+          </div>
+          <div class="metric">
+            <span>Âmbito</span>
+            <strong>UFR</strong>
+            <p>impacto direto na gestão da arborização e na experiência cotidiana da comunidade acadêmica.</p>
+          </div>
+          <div class="metric">
+            <span>Vocação</span>
+            <strong>Extensão</strong>
+            <p>articulação entre universidade, manutenção do campus e poder público municipal.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="apresentacao">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">01 • Apresentação e justificativa</span>
+            <h2>Revitalização paisagística como resposta técnica ao estado atual do campus</h2>
+          </div>
+          <p>O projeto parte da leitura do campus como paisagem viva, mas carente de gestão integrada, protocolos e visão de longo prazo.</p>
+        </div>
+
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Contexto</h3>
+            <p>
+              O campus da Universidade Federal de Rondonópolis apresenta potencial paisagístico expressivo, porém a gestão das áreas verdes ainda é deficiente em aspectos técnicos, estruturais e de planejamento. A ausência de um Plano Diretor de Paisagismo e a falta de qualificação específica da equipe responsável pelo manejo arbóreo têm favorecido podas incorretas, redução da longevidade das árvores e aumento de riscos à comunidade acadêmica.
+            </p>
+          </article>
+          <article class="panel">
+            <h3>Justificativa</h3>
+            <p>
+              O projeto responde também ao déficit de sombreamento em zonas estratégicas, à degradação do gramado no período seco, à perda de elementos paisagísticos consolidados — como o túnel verde entre a Biblioteca e o Bloco A — e à inexistência de um banco de mudas que sustente reposição, expansão da arborização, ensino e pesquisa.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="objetivos">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">02 • Objetivos</span>
+            <h2>Estrutura de metas do Flora UFR</h2>
+          </div>
+          <p>O objetivo geral orienta o plano; os objetivos específicos organizam as entregas técnicas, formativas e digitais do projeto.</p>
+        </div>
+
+        <div class="objectives-grid">
+          <article class="section-card">
+            <div class="icon-badge">🎯</div>
+            <h3>Objetivo geral</h3>
+            <p>
+              Promover a revitalização e o planejamento paisagístico sustentável do campus da UFR, por meio da qualificação de profissionais de manutenção, elaboração de Plano Diretor de Paisagismo e desenvolvimento de ferramenta digital de catalogação da flora local.
+            </p>
+          </article>
+
+          <article class="section-card">
+            <div class="icon-badge">🌳</div>
+            <h3>Objetivos específicos I</h3>
+            <ul class="bullets">
+              <li>Realizar diagnóstico técnico do estado fitossanitário das árvores e da gestão do verde no campus.</li>
+              <li>Qualificar a equipe de manutenção por meio de oficina de extensão sobre técnicas corretas de poda arbórea.</li>
+              <li>Elaborar um Plano Diretor de Paisagismo integrando estética, conforto térmico e bem-estar.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <div class="icon-badge">📲</div>
+            <h3>Objetivos específicos II</h3>
+            <ul class="bullets">
+              <li>Propor implantação de banco de mudas e introdução de espécies frutíferas adequadas ao contexto universitário.</li>
+              <li>Desenvolver e apresentar o protótipo do aplicativo Flora UFR para catalogação digital georreferenciada.</li>
+              <li>Estabelecer parceria com a Prefeitura Municipal de Rondonópolis para ampliar o impacto social do projeto.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="diagnostico">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">03 • Diagnóstico da problemática</span>
+            <h2>Questões identificadas no levantamento preliminar</h2>
+          </div>
+          <p>O diagnóstico evidencia tanto problemas fitossanitários quanto lacunas de planejamento, imagem paisagística e infraestrutura verde.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Problema identificado</th>
+                <th>Impacto observado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Problema identificado">Podas com abandono de tocos</td>
+                <td data-label="Impacto observado">Apodrecimento pelo cerne, entrada de fungos, morte precoce das árvores e risco de queda de galhos sobre calçadas.</td>
+              </tr>
+              <tr>
+                <td data-label="Problema identificado">Ausência de protocolo de poda por espécie</td>
+                <td data-label="Impacto observado">Árvores com geometria inadequada e janelas de poda não respeitadas.</td>
+              </tr>
+              <tr>
+                <td data-label="Problema identificado">Falta de Plano Diretor de Paisagismo</td>
+                <td data-label="Impacto observado">Ausência de identidade visual e baixo conforto térmico, especialmente no estacionamento e nos blocos F e C.</td>
+              </tr>
+              <tr>
+                <td data-label="Problema identificado">Ausência de banco de mudas</td>
+                <td data-label="Impacto observado">Dificuldade de reposição e expansão da arborização, sem suporte à pesquisa e ao ensino.</td>
+              </tr>
+              <tr>
+                <td data-label="Problema identificado">Degradação do gramado no período seco</td>
+                <td data-label="Impacto observado">Terra exposta, erosão e formação de lama no período chuvoso.</td>
+              </tr>
+              <tr>
+                <td data-label="Problema identificado">Poda desnecessária de elementos estéticos</td>
+                <td data-label="Impacto observado">Destruição do efeito túnel na alameda entre Biblioteca e Bloco A.</td>
+              </tr>
+              <tr>
+                <td data-label="Problema identificado">Falta de catalogação digital das espécies</td>
+                <td data-label="Impacto observado">Ausência de registro sistemático da flora do campus e perda de memória biológica institucional.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="metodologia">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">04 • Metodologia e ações</span>
+            <h2>Cinco frentes articuladas entre campo, formação, plano e tecnologia</h2>
+          </div>
+          <p>A metodologia organiza o projeto em ações complementares, cada uma com objetivo próprio e contribuição concreta para a paisagem do campus.</p>
+        </div>
+
+        <div class="cards-grid">
+          <article class="section-card">
+            <div class="icon-badge">🔎</div>
+            <h3>Ação 1 — Diagnóstico e levantamento arbóreo</h3>
+            <p>Inventário das árvores do campus com registro de espécie, estado fitossanitário, localização georreferenciada e avaliação das condições de poda.</p>
+            <ul class="bullets">
+              <li><strong>Como:</strong> visitas técnicas com fichas de campo padronizadas e apoio de aplicativo de identificação botânica.</li>
+              <li><strong>Quando:</strong> 1ª e 2ª semanas.</li>
+              <li><strong>Responsáveis:</strong> Efraim Almeida Fernandes e Jackcilayne Padilha de Souza.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <div class="icon-badge">✂️</div>
+            <h3>Ação 2 — Oficina de extensão em poda arbórea</h3>
+            <p>Oficina presencial de 4 horas, com abordagem teórica e prática, voltada à equipe de manutenção do campus.</p>
+            <ul class="bullets">
+              <li>Conceitos e tipos de poda.</li>
+              <li>Janela de poda por espécie ou grupo de espécies.</li>
+              <li>Técnica de corte, ferramentas adequadas e riscos da poda incorreta.</li>
+              <li><strong>Quando:</strong> 4ª semana.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <div class="icon-badge">📐</div>
+            <h3>Ação 3 — Plano Diretor de Paisagismo</h3>
+            <p>Documento técnico para orientar a gestão das áreas verdes do campus a curto, médio e longo prazo.</p>
+            <ul class="bullets">
+              <li>Zoneamento de jardins, alamedas, estacionamento e praças.</li>
+              <li>Preservação e ampliação do túnel verde.</li>
+              <li>Plano de sombreamento para estacionamento e blocos F e C.</li>
+              <li><strong>Quando:</strong> 3ª à 6ª semana.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <div class="icon-badge">📱</div>
+            <h3>Ação 4 — Aplicativo Flora UFR</h3>
+            <p>Protótipo para catalogação digital das espécies arbóreas do campus, articulando memória ambiental e uso colaborativo.</p>
+            <ul class="bullets">
+              <li>Mapa georreferenciado das árvores catalogadas.</li>
+              <li>Ficha individual por árvore com nome popular, científico, família botânica e galeria de fotos.</li>
+              <li>Registro colaborativo com fotos de árvores floridas ou frutificando.</li>
+              <li><strong>Quando:</strong> 5ª à 8ª semana.</li>
+            </ul>
+          </article>
+
+          <article class="section-card">
+            <div class="icon-badge">🌱</div>
+            <h3>Ação 5 — Restauração do gramado</h3>
+            <p>Elaboração de protocolo técnico para recuperação das áreas degradadas, com indicação de espécies de cobertura e calendário de replantio.</p>
+            <ul class="bullets">
+              <li>Identificação de pontos de terra exposta.</li>
+              <li>Escolha de espécies adequadas ao clima de Mato Grosso.</li>
+              <li>Integração ao Plano Diretor de Paisagismo.</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Conteúdo programático da oficina</h3>
+            <div class="pill-list">
+              <span class="pill">Poda de formação</span>
+              <span class="pill">Poda sanitária</span>
+              <span class="pill">Janela de poda</span>
+              <span class="pill">Técnica de corte</span>
+              <span class="pill">Geometria arbórea</span>
+              <span class="pill">Segurança da comunidade</span>
+            </div>
+            <p style="margin-top:16px;">
+              A oficina será supervisionada pelo Prof. Normandes Matos da Silva e dialoga com referências ligadas à fruticultura, arborização urbana e planejamento paisagístico.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="mapa">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">Leitura espacial</span>
+            <h2>Mapa interativo do campus</h2>
+          </div>
+          <p>Mapa em Leaflet com base OpenStreetMap, centralizado em Rondonópolis e pronto para receber marcadores reais dos edifícios e áreas de intervenção.</p>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div id="mapa-campus" class="real-map" aria-label="Mapa interativo do campus"></div>
+          </div>
+
+          <article class="panel">
+            <h3>Como usar este mapa</h3>
+            <ul class="bullets">
+              <li>Centro inicial configurado para Rondonópolis: <strong>-16.465720, -54.578753</strong>.</li>
+              <li>Base cartográfica gratuita via <strong>OpenStreetMap</strong>, sem necessidade de chave de API.</li>
+              <li>Marcador inicial do campus já incluído e espaço pronto para adicionar prédios, blocos e setores estratégicos.</li>
+              <li>Você pode substituir os marcadores de exemplo por coordenadas reais obtidas no Google Maps.</li>
+            </ul>
+            <div class="pill-list">
+              <span class="pill">Leaflet</span>
+              <span class="pill">OpenStreetMap</span>
+              <span class="pill">Sem custo de API</span>
+              <span class="pill">Marcadores editáveis</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="parcerias">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">05 • Parcerias institucionais</span>
+            <h2>Articulação entre universidade e poder público</h2>
+          </div>
+          <p>Como projeto de extensão, o Flora UFR amplia seu alcance ao dialogar com estruturas públicas capazes de replicar e apoiar suas ações.</p>
+        </div>
+
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Prefeitura Municipal de Rondonópolis</h3>
+            <p>
+              Propõe-se parceria com a Secretaria de Meio Ambiente e/ou Secretaria de Obras e Serviços Urbanos, considerando que o manejo arbóreo urbano é responsabilidade compartilhada e que os protocolos produzidos no projeto podem ser replicados em áreas públicas da cidade.
+            </p>
+          </article>
+          <article class="panel">
+            <h3>Possíveis contribuições</h3>
+            <ul class="bullets">
+              <li>Disponibilização de técnicos especializados, equipamentos de poda e materiais de apoio.</li>
+              <li>Ampliação do impacto social do projeto e sua capacidade de replicação.</li>
+              <li>Formalização por ofício institucional com apoio da coordenação de extensão da UFR.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="publico">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">06 • Público-alvo</span>
+            <h2>Quem é impactado pelo projeto</h2>
+          </div>
+          <p>O Flora UFR combina efeito direto sobre equipes operacionais com benefício ampliado para a comunidade acadêmica e parceiros públicos.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="section-card">
+            <div class="icon-badge">🧰</div>
+            <h3>Público direto</h3>
+            <p>Equipe de manutenção de jardins e áreas verdes da UFR, beneficiada por capacitação técnica e protocolos mais qualificados de manejo.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">🎓</div>
+            <h3>Público indireto</h3>
+            <p>Comunidade acadêmica como um todo — professores, estudantes e servidores — favorecida pela revitalização do campus e pelo app Flora UFR.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">🏙️</div>
+            <h3>Parceiro institucional</h3>
+            <p>Prefeitura Municipal de Rondonópolis e seus servidores da área de arborização urbana, com possibilidade de intercâmbio técnico.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="cronograma">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">07 • Cronograma</span>
+            <h2>Sequência temporal das atividades</h2>
+          </div>
+          <p>O cronograma foi traduzido em cartões para manter leitura leve e boa apresentação visual em tela ou PDF.</p>
+        </div>
+
+        <div class="timeline">
+          <article class="timeline-card">
+            <div class="week">1ª–2ª</div>
+            <div>
+              <h3>Diagnóstico e levantamento arbóreo</h3>
+              <p>Inventário do campus, leitura fitossanitária das árvores e organização da base inicial de dados do projeto.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">3ª</div>
+            <div>
+              <h3>Revisão bibliográfica e conteúdo da oficina</h3>
+              <p>Consolidação do repertório técnico e estruturação pedagógica da oficina de extensão em poda arbórea.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">4ª</div>
+            <div>
+              <h3>Realização da oficina</h3>
+              <p>Atividade prática e demonstrativa com a equipe de manutenção do campus.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">3ª–6ª</div>
+            <div>
+              <h3>Plano Diretor de Paisagismo</h3>
+              <p>Desenvolvimento do documento orientador com zoneamento, diretrizes, sombreamento e manutenção anual.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">5ª–8ª</div>
+            <div>
+              <h3>Protótipo e documentação do aplicativo</h3>
+              <p>Modelagem da interface e organização funcional do Flora UFR como ferramenta digital de catalogação arbórea.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">6ª–7ª</div>
+            <div>
+              <h3>Protocolo de restauração do gramado</h3>
+              <p>Integração da recuperação de áreas degradadas ao plano paisagístico mais amplo.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">7ª–8ª</div>
+            <div>
+              <h3>Parceria com a Prefeitura</h3>
+              <p>Contato, articulação institucional e possível formalização de cooperação.</p>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <div class="week">8ª</div>
+            <div>
+              <h3>Relatório final e apresentação</h3>
+              <p>Compilação final e apresentação ao professor orientador.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="resultados">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">08 • Resultados esperados</span>
+            <h2>Entregas e impactos previstos</h2>
+          </div>
+          <p>Os resultados esperados combinam transformação material do campus, qualificação técnica e construção de memória ambiental.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="section-card">
+            <div class="icon-badge">✅</div>
+            <h3>Capacitação e protocolo</h3>
+            <p>Equipe de manutenção capacitada com protocolo técnico de poda arbórea e maior consistência nas práticas de manejo.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">📘</div>
+            <h3>Documento técnico</h3>
+            <p>Plano Diretor de Paisagismo entregue à administração da UFR, com visão integrada de curto, médio e longo prazo.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">🗺️</div>
+            <h3>Protótipo funcional</h3>
+            <p>Aplicativo Flora UFR com catálogo georreferenciado das espécies do campus e potencial de expansão futura.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">🌱</div>
+            <h3>Infraestrutura verde</h3>
+            <p>Proposta de implantação de banco de mudas e apoio à pesquisa, ensino e reposição da arborização.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">🌦️</div>
+            <h3>Recuperação paisagística</h3>
+            <p>Protocolo de restauração do gramado adaptado ao clima de Mato Grosso e maior conforto ambiental no campus.</p>
+          </article>
+          <article class="section-card">
+            <div class="icon-badge">🤝</div>
+            <h3>Ampliação de alcance</h3>
+            <p>Carta de intenções ou termo de parceria com a Prefeitura, fortalecendo o impacto comunitário da extensão.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="referencias">
+        <div class="section-head">
+          <div>
+            <span class="section-kicker">09 • Referências bibliográficas</span>
+            <h2>Base técnica e institucional</h2>
+          </div>
+          <p>Referências que orientam a abordagem em arborização, paisagismo, fruticultura e acessibilidade urbana.</p>
+        </div>
+
+        <article class="reference-list">
+          <ul>
+            <li>EMBRAPA. Manuais de poda e manejo de espécies frutíferas tropicais. Brasília: EMBRAPA.</li>
+            <li>UNIVERSIDADE FEDERAL DE VIÇOSA (UFV). Publicações técnicas em fruticultura e arborização. Viçosa: UFV.</li>
+            <li>USP-ESALQ. Arborização urbana: manejo, poda e planejamento paisagístico. Piracicaba: ESALQ/USP.</li>
+            <li>UNESP Jaboticabal. Técnicas de fruticultura tropical e manejo arbóreo. Jaboticabal: UNESP.</li>
+            <li>SEMERDJIAN, S. Manejo de frutíferas e técnicas de poda. Grupo Fanáticos por Parreira. São Paulo.</li>
+            <li>SOCIEDADE BRASILEIRA DE ARBORIZAÇÃO URBANA (SBAU). Diretrizes para poda de árvores urbanas. Curitiba: SBAU.</li>
+            <li>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS (ABNT). NBR 9050: Acessibilidade a edificações, mobiliário, espaços e equipamentos urbanos. Rio de Janeiro: ABNT, 2020.</li>
+          </ul>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-box">
+      <div>
+        <strong>Flora UFR</strong><br>
+        Plano de Projeto de Extensão • Rondonópolis – MT • 2026
+      </div>
+      <div>
+        Layout em HTML, CSS e JavaScript puro para apresentação digital ou exportação em PDF.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const coordsCentro = [-16.465720, -54.578753];
+    const map = L.map('mapa-campus').setView(coordsCentro, 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    L.marker(coordsCentro).addTo(map)
+      .bindPopup(`
+        <div class="map-popup-title">Campus Rondonópolis</div>
+        <div>Universidade Federal de Rondonópolis</div>
+      `);
+
+    const pontosCampus = [
+      {
+        nome: 'Biblioteca + Alameda',
+        coords: [-16.465320, -54.579180],
+        descricao: 'Setor estratégico para preservação e recuperação do túnel verde.'
+      },
+      {
+        nome: 'Blocos F e C',
+        coords: [-16.465980, -54.578100],
+        descricao: 'Área prioritária para reforço de sombreamento e conforto térmico.'
+      },
+      {
+        nome: 'Estacionamento',
+        coords: [-16.466420, -54.578620],
+        descricao: 'Ponto com potencial para arborização de suporte climático.'
+      }
+    ];
+
+    pontosCampus.forEach(ponto => {
+      L.marker(ponto.coords).addTo(map)
+        .bindPopup(`
+          <div class="map-popup-title">${ponto.nome}</div>
+          <div>${ponto.descricao}</div>
+        `);
+    });
+
+    setTimeout(() => map.invalidateSize(), 300);
+
+    const toggle = document.getElementById('menuToggle');
+    const menu = document.getElementById('menu');
+    const links = [...menu.querySelectorAll('a')];
+
+    toggle.addEventListener('click', () => {
+      menu.classList.toggle('open');
+    });
+
+    links.forEach(link => {
+      link.addEventListener('click', () => menu.classList.remove('open'));
+    });
+
+    const sections = links
+      .map(link => document.querySelector(link.getAttribute('href')))
+      .filter(Boolean);
+
+    const activate = () => {
+      const y = window.scrollY + 120;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.offsetTop <= y) current = section;
+      }
+      links.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current.id);
+      });
+    };
+
+    window.addEventListener('scroll', activate);
+    activate();
+  </script>
+</body>
+</html>
