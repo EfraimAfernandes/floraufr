@@ -29,6 +29,7 @@
 
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    section[id] { scroll-margin-top: 110px; }
     body {
       margin: 0;
       font-family: Inter, "Segoe UI", Arial, sans-serif;
@@ -1156,8 +1157,25 @@
       .map(link => document.querySelector(link.getAttribute('href')))
       .filter(Boolean);
 
+    const getHeaderOffset = () => {
+      const topbar = document.querySelector('.topbar');
+      return (topbar ? topbar.offsetHeight : 0) + 24;
+    };
+
+    links.forEach(link => {
+      link.addEventListener('click', event => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+        event.preventDefault();
+        const offset = getHeaderOffset();
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+        menu.classList.remove('open');
+      });
+    });
+
     const activate = () => {
-      const y = window.scrollY + 120;
+      const y = window.scrollY + getHeaderOffset() + 20;
       let current = sections[0];
       for (const section of sections) {
         if (section.offsetTop <= y) current = section;
@@ -1168,6 +1186,7 @@
     };
 
     window.addEventListener('scroll', activate);
+    window.addEventListener('resize', activate);
     activate();
   </script>
 </body>
