@@ -90,4 +90,4 @@ Este repositório contém o código fonte do protótipo do aplicativo web para c
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/SEU_USUARIO/flora-ufr.git
+   git clone https://github.com/EfraimAfernandes/flora-ufr.git
