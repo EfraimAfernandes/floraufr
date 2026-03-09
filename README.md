@@ -62,3 +62,32 @@ Este repositório contém o código fonte do protótipo do aplicativo web para c
 - **Ano:** 2026
 
 ## 📂 Estrutura do Repositório
+
+## 📅 Cronograma de Ações
+
+| Semana | Ação | Status |
+|--------|------|--------|
+| 1-2 | Diagnóstico e levantamento arbóreo | ⏳ |
+| 3 | Conteúdo da Oficina de Poda | ⏳ |
+| 4 | Realização da Oficina de Extensão | ⏳ |
+| 3-6 | Elaboração do Plano Diretor | ⏳ |
+| 5-8 | Desenvolvimento do App Flora UFR | 🚧 |
+| 7-8 | Parceria com Prefeitura Municipal | ⏳ |
+
+## 🤝 Parcerias Institucionais
+
+- Prefeitura Municipal de Rondonópolis
+- Secretaria de Meio Ambiente
+- Secretaria de Obras e Serviços Urbanos
+
+## 📄 Documentação
+
+- [Plano de Projeto de Extensão](docs/plano_projeto.pdf)
+- [Plano Diretor de Paisagismo](docs/plano_paisagismo.pdf)
+- [Dados do Inventário](data/inventario_arvoreo.csv)
+
+## 🚀 Como Rodar o Projeto
+
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/SEU_USUARIO/flora-ufr.git
