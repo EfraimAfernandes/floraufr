@@ -51,6 +51,8 @@
       backdrop-filter: blur(16px);
       background: rgba(255,255,255,.84);
       border-bottom: 1px solid rgba(30,58,95,.08);
+      padding-top: 8px;
+      padding-bottom: 8px;
     }
 
     .nav {
@@ -581,11 +583,13 @@
       <button class="mobile-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
 
       <nav class="menu" id="menu">
+        <a href="#inicio">Início</a>
         <a href="#apresentacao">Apresentação</a>
         <a href="#objetivos">Objetivos</a>
         <a href="#diagnostico">Diagnóstico</a>
         <a href="#metodologia">Metodologia</a>
         <a href="#mapa">Mapa</a>
+        <a href="#parcerias">Parcerias</a>
         <a href="#cronograma">Cronograma</a>
         <a href="#resultados">Resultados</a>
       </nav>
@@ -878,19 +882,15 @@
           </div>
 
           <article class="panel">
-            <h3>Como usar este mapa</h3>
+            <h3>Mapa como apoio de leitura territorial</h3>
+            <p>
+              O mapa interativo funciona como base visual para localizar setores estratégicos do campus e comunicar, de forma mais clara, as áreas prioritárias de intervenção paisagística do projeto.
+            </p>
             <ul class="bullets">
-              <li>Centro inicial configurado para Rondonópolis: <strong>-16.465720, -54.578753</strong>.</li>
-              <li>Base cartográfica gratuita via <strong>OpenStreetMap</strong>, sem necessidade de chave de API.</li>
-              <li>Marcador inicial do campus já incluído e espaço pronto para adicionar prédios, blocos e setores estratégicos.</li>
-              <li>Você pode substituir os marcadores de exemplo por coordenadas reais obtidas no Google Maps.</li>
+              <li>Leitura espacial das áreas com déficit de sombreamento.</li>
+              <li>Identificação de corredores verdes e pontos de interesse paisagístico.</li>
+              <li>Apoio à futura catalogação georreferenciada no aplicativo Flora UFR.</li>
             </ul>
-            <div class="pill-list">
-              <span class="pill">Leaflet</span>
-              <span class="pill">OpenStreetMap</span>
-              <span class="pill">Sem custo de API</span>
-              <span class="pill">Marcadores editáveis</span>
-            </div>
           </article>
         </div>
       </section>
@@ -935,7 +935,7 @@
           <article class="section-card">
             <div class="icon-badge">🧰</div>
             <h3>Público direto</h3>
-            <p>Equipe de manutenção de jardins e áreas verdes da UFR, beneficiada por capacitação técnica e protocolos mais qualificados de manejo.</p>
+            <p>Equipe terceirizada responsável pela jardinagem e manutenção das áreas verdes da UFR, vinculada à empresa GRANLIMP LIMPEZA E CONSERVAÇÃO EIRELI, beneficiada por capacitação técnica e protocolos mais qualificados de manejo.</p>
           </article>
           <article class="section-card">
             <div class="icon-badge">🎓</div>
@@ -1175,6 +1175,16 @@
     });
 
     const activate = () => {
+      const hero = document.querySelector('#inicio');
+      const threshold = (document.querySelector('#apresentacao')?.offsetTop || 0) - getHeaderOffset() - 40;
+
+      if (window.scrollY < threshold) {
+        links.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#inicio');
+        });
+        return;
+      }
+
       const y = window.scrollY + getHeaderOffset() + 20;
       let current = sections[0];
       for (const section of sections) {
